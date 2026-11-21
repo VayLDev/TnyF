@@ -157,7 +157,6 @@ export function mountGame(root: HTMLElement): Cleanup {
   let grounded = true;
   let toastTimer = 0;
   let lastTime = performance.now();
-  let toastTimer = 0;
   let animation = 0;
   let disposed = false;
 
