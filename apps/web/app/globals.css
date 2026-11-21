@@ -30,3 +30,9 @@ body { font-family: 'Manrope', system-ui, sans-serif; }
   .tf-help { bottom: 14px; max-width: calc(100% - 20px); font-size: 8px; }
   .tf-toast { bottom: 54px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
 }
+
+.tf-inventory { position: absolute; left: 28px; bottom: 76px; display: grid; gap: 7px; min-width: 150px; padding: 12px 14px; border: 1px solid #f1e9d244; border-radius: 10px; background: #14241dbb; color: #e9eddf; font: 10px 'DM Mono', monospace; backdrop-filter: blur(8px); }
+.tf-inventory > b { color: #e8d8a5; letter-spacing: .14em; font-size: 9px; margin-bottom: 2px; }
+.tf-inventory span { display: flex; justify-content: space-between; gap: 16px; }
+.tf-inventory strong { color: #fff4d1; font-weight: 500; }
+@media (max-width: 600px) { .tf-inventory { left: 14px; bottom: 65px; padding: 8px 10px; min-width: 125px; font-size: 9px; } }
