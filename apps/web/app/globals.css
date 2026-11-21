@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root { color-scheme: dark; --tf-ink: #f5f0df; --tf-muted: #c2c7b8; }
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #101827; }
+body { font-family: 'Manrope', system-ui, sans-serif; }
+.tf-page, .tf-game-root { position: relative; width: 100%; height: 100%; min-height: 100dvh; overflow: hidden; }
+.tf-canvas { display: block; width: 100%; height: 100%; outline: none; }
+.tf-hud { position: absolute; inset: 0; z-index: 2; pointer-events: none; color: var(--tf-ink); text-shadow: 0 2px 12px #17231c; }
+.tf-brand { position: absolute; top: 25px; left: 28px; display: flex; align-items: center; gap: 11px; }
+.tf-mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #e8d8a5aa; border-radius: 12px; color: #e8d8a5; font-size: 22px; background: #16251e66; }
+.tf-brand strong { display: block; letter-spacing: .16em; font-size: 13px; font-weight: 800; }
+.tf-brand small { display: block; margin-top: 3px; color: #e2e1ce; letter-spacing: .22em; font: 9px 'DM Mono', monospace; }
+.tf-status { position: absolute; top: 25px; right: 28px; display: flex; gap: 8px; }
+.tf-status div { min-width: 76px; padding: 9px 12px; border: 1px solid #f1e9d244; border-radius: 10px; background: #14241dbb; backdrop-filter: blur(8px); }
+.tf-status span { display: block; color: #c5cfb9; font: 9px 'DM Mono', monospace; letter-spacing: .12em; }
+.tf-status b { display: block; margin-top: 4px; font: 600 18px 'DM Mono', monospace; }
+.tf-center { position: absolute; top: 50%; left: 50%; display: flex; flex-direction: column; align-items: center; gap: 18px; transform: translate(-50%, -50%); }
+.tf-crosshair { color: #fff9; font: 22px 'DM Mono', monospace; }
+.tf-prompt { padding: 10px 16px; border: 1px solid #f1e9d266; border-radius: 7px; background: #15251ec9; color: #f4efd9; font: 10px 'DM Mono', monospace; letter-spacing: .18em; white-space: nowrap; }
+.tf-help { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 15px; border: 1px solid #f1e9d233; border-radius: 8px; background: #14241da8; color: #d7dece; font: 10px 'DM Mono', monospace; white-space: nowrap; backdrop-filter: blur(8px); }
+.tf-help b { color: #fff4d1; font-weight: 500; }
+.tf-help i { padding: 0 7px; color: #9eae99; font-style: normal; }
+.tf-toast { position: absolute; bottom: 72px; left: 50%; transform: translateX(-50%); color: #f5f0df; font-size: 12px; white-space: nowrap; }
+.tf-error { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: #101827; color: #f5f0df; text-align: center; }
+@media (max-width: 600px) {
+  .tf-brand { top: 16px; left: 14px; }
+  .tf-status { top: 70px; left: 14px; right: auto; gap: 5px; }
+  .tf-status div { min-width: 66px; padding: 7px 9px; }
+  .tf-help { bottom: 14px; max-width: calc(100% - 20px); font-size: 8px; }
+  .tf-toast { bottom: 54px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+}
