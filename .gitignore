@@ -1,0 +1,9 @@
+node_modules/
+.next/
+**/.next/
+apps/web/wasm/
+apps/web/.env.local
+.env
+.env.*
+!.env.example
+.DS_Store
