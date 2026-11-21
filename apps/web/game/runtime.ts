@@ -100,10 +100,12 @@ export function mountGame(root: HTMLElement): Cleanup {
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 2.2, 6), trunkMaterial);
     trunk.position.set(x, 1.5, z);
     trunk.castShadow = true;
+    trunk.userData.resource = 'wood';
     scene.add(trunk);
     const crown = new THREE.Mesh(new THREE.ConeGeometry(1.35 + random() * 0.5, 3.2, 7), leafMaterial);
     crown.position.set(x, 3.8, z);
     crown.castShadow = true;
+    crown.userData.resource = 'wood';
     scene.add(crown);
   }
 
@@ -115,7 +117,22 @@ export function mountGame(root: HTMLElement): Cleanup {
     rock.position.set(Math.cos(angle) * radius, 0.9, Math.sin(angle) * radius);
     rock.rotation.set(random(), random(), random());
     rock.castShadow = true;
+    rock.userData.resource = 'stone';
     scene.add(rock);
+  }
+
+  const bushMat = new THREE.MeshStandardMaterial({ color: 0x426b3d, roughness: 1 });
+  const berryMat = new THREE.MeshStandardMaterial({ color: 0xc94d55, roughness: 0.8 });
+  for (let i = 0; i < 12; i++) {
+    const a = random() * Math.PI * 2, r = 7 + random() * 20;
+    const bush = new THREE.Mesh(new THREE.IcosahedronGeometry(0.65, 1), bushMat);
+    bush.position.set(Math.cos(a) * r, 0.75, Math.sin(a) * r);
+    bush.userData.resource = 'berries'; bush.castShadow = true; scene.add(bush);
+    for (let j = 0; j < 4; j++) {
+      const berry = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), berryMat);
+      berry.position.set(bush.position.x + (random() - 0.5) * 0.7, 0.9 + random() * 0.35, bush.position.z + (random() - 0.5) * 0.7);
+      berry.userData.resource = 'berries'; scene.add(berry);
+    }
   }
 
   const hud = document.createElement('div');
@@ -124,7 +141,7 @@ export function mountGame(root: HTMLElement): Cleanup {
     <div class="tf-brand"><span class="tf-mark">✦</span><div><strong>TINY FRONTIER</strong><small>ISLAND SURVIVAL</small></div></div>
     <div class="tf-status"><div><span>HEALTH</span><b id="tf-health">100</b></div><div><span>HUNGER</span><b id="tf-hunger">100</b></div><div><span>THIRST</span><b id="tf-thirst">100</b></div></div>
     <div class="tf-center"><span class="tf-crosshair">+</span><div class="tf-prompt" id="tf-prompt">CLICK TO EXPLORE</div></div>
-    <div class="tf-help"><b>W A S D</b> Move <i>·</i> <b>Mouse</b> Look <i>·</i> <b>Shift</b> Sprint <i>·</i> <b>Esc</b> Pause</div>
+    <div class="tf-inventory" id="tf-inventory"><b>BACKPACK</b><span>🪵 Wood <strong id="tf-wood">0</strong></span><span>🪨 Stone <strong id="tf-stone">0</strong></span><span>🫐 Berries <strong id="tf-berries">0</strong></span></div><div class="tf-help"><b>W A S D</b> Move <i>·</i> <b>Ctrl + W</b> Sprint <i>·</i> <b>Shift</b> Sneak <i>·</i> <b>Space</b> Jump <i>·</i> <b>E</b> Gather <i>·</i> <b>Esc</b> Pause</div>
     <div class="tf-toast" id="tf-toast">You woke up on an unfamiliar island.</div>
   `;
   root.appendChild(hud);
@@ -135,14 +152,33 @@ export function mountGame(root: HTMLElement): Cleanup {
   let health = 100;
   let hunger = 100;
   let thirst = 100;
+  const inventory = { wood: 0, stone: 0, berries: 0 };
+  let verticalVelocity = 0;
+  let grounded = true;
+  let toastTimer = 0;
   let lastTime = performance.now();
   let toastTimer = 0;
   let animation = 0;
   let disposed = false;
 
+  const toast = (message: string) => { const node = hud.querySelector<HTMLElement>('#tf-toast'); if (node) node.textContent = message; toastTimer = 3; };
+  const updateInventory = () => { (['wood', 'stone', 'berries'] as const).forEach((item) => { const node = hud.querySelector<HTMLElement>('#tf-' + item); if (node) node.textContent = String(inventory[item]); }); };
+  const gather = () => {
+    if (!controls.isLocked) return;
+    const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const targets: THREE.Object3D[] = []; scene.traverse((o) => { if (o.userData.resource) targets.push(o); });
+    const hit = ray.intersectObjects(targets, false).find((h) => h.distance < 3.2);
+    if (!hit) { toast('Look at a tree, rock or berry bush, then press E.'); return; }
+    const kind = hit.object.userData.resource as keyof typeof inventory;
+    inventory[kind] += kind === 'berries' ? 2 : 1; updateInventory(); hit.object.visible = false;
+    if (kind === 'berries') { hunger = Math.min(100, hunger + 8); const h = hud.querySelector<HTMLElement>('#tf-hunger'); if (h) h.textContent = String(Math.round(hunger)); toast('Gathered 2 berries. Hunger restored.'); }
+    else toast(kind === 'wood' ? 'Gathered 1 wood.' : 'Gathered 1 stone.');
+  };
   const onKeyDown = (event: KeyboardEvent) => {
     keys.add(event.code);
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
+    if (event.code === 'Space' && grounded && controls.isLocked) { verticalVelocity = 7.2; grounded = false; }
+    if (event.code === 'KeyE' && !event.repeat) gather();
   };
   const onKeyUp = (event: KeyboardEvent) => keys.delete(event.code);
   const onClick = () => { if (!controls.isLocked) controls.lock(); };
@@ -168,6 +204,7 @@ export function mountGame(root: HTMLElement): Cleanup {
     animation = requestAnimationFrame(animate);
     const dt = Math.min(clock.getDelta(), 0.05);
     const elapsed = (performance.now() - lastTime) / 1000;
+    if (toastTimer > 0) { toastTimer -= dt; if (toastTimer <= 0) toast(''); }
     if (elapsed >= 1) {
       hunger = Math.max(0, hunger - 0.025 * elapsed);
       thirst = Math.max(0, thirst - 0.04 * elapsed);
@@ -182,8 +219,11 @@ export function mountGame(root: HTMLElement): Cleanup {
     }
 
     if (controls.isLocked) {
-      const speed = keys.has('ShiftLeft') || keys.has('ShiftRight') ? 10 : 6;
-      direction.set(Number(keys.has('KeyD')) - Number(keys.has('KeyA')), 0, Number(keys.has('KeyS')) - Number(keys.has('KeyW')));
+      const sneaking = keys.has('ShiftLeft') || keys.has('ShiftRight');
+      const sprinting = (keys.has('ControlLeft') || keys.has('ControlRight')) && keys.has('KeyW') && !sneaking;
+      const speed = sprinting ? 11 : sneaking ? 2.6 : 6;
+      const forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
+      direction.set(Number(keys.has('KeyD')) - Number(keys.has('KeyA')), 0, -forward);
       if (direction.lengthSq() > 0) {
         direction.normalize();
         velocity.copy(direction).multiplyScalar(speed * dt);
@@ -197,7 +237,11 @@ export function mountGame(root: HTMLElement): Cleanup {
           camera.position.z *= 31 / radius;
         }
       }
-      camera.position.y = 2.05 + Math.sin(performance.now() * 0.008) * (direction.lengthSq() > 0 ? 0.045 : 0.008);
+      verticalVelocity -= 18 * dt;
+      camera.position.y += verticalVelocity * dt;
+      const floorHeight = sneaking ? 1.35 : 2.05;
+      if (camera.position.y <= floorHeight) { camera.position.y = floorHeight; verticalVelocity = 0; grounded = true; }
+      if (grounded && direction.lengthSq() > 0) camera.position.y += Math.sin(performance.now() * 0.012) * (sneaking ? 0.008 : 0.025);
     }
 
     ocean.position.x = camera.position.x * 0.015;
