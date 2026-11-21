@@ -176,7 +176,7 @@ export function mountGame(root: HTMLElement): Cleanup {
   };
   const onKeyDown = (event: KeyboardEvent) => {
     keys.add(event.code);
-    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
+    if ((event.ctrlKey && event.code === 'KeyW') || ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
     if (event.code === 'Space' && grounded && controls.isLocked) { verticalVelocity = 7.2; grounded = false; }
     if (event.code === 'KeyE' && !event.repeat) gather();
   };
@@ -223,7 +223,7 @@ export function mountGame(root: HTMLElement): Cleanup {
       const sprinting = (keys.has('ControlLeft') || keys.has('ControlRight')) && keys.has('KeyW') && !sneaking;
       const speed = sprinting ? 11 : sneaking ? 2.6 : 6;
       const forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
-      direction.set(Number(keys.has('KeyD')) - Number(keys.has('KeyA')), 0, -forward);
+      direction.set(Number(keys.has('KeyD')) - Number(keys.has('KeyA')), 0, forward);
       if (direction.lengthSq() > 0) {
         direction.normalize();
         velocity.copy(direction).multiplyScalar(speed * dt);
