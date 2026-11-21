@@ -1,0 +1,14 @@
+{
+  "name": "tiny-frontier",
+  "private": true,
+  "version": "0.2.0",
+  "workspaces": ["apps/web"],
+  "scripts": {
+    "wasm": "wasm-pack build crates/game-core --target bundler --out-dir ../../apps/web/wasm --out-name game_core",
+    "predev": "npm run wasm",
+    "dev": "npm --workspace apps/web run dev",
+    "prebuild": "npm run wasm",
+    "build": "npm --workspace apps/web run build",
+    "start": "npm --workspace apps/web run start"
+  }
+}
