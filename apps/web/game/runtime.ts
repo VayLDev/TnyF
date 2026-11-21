@@ -262,13 +262,7 @@ export function mountGame(root: HTMLElement): Cleanup {
   renderer.domElement.addEventListener('click',onClick);controls.addEventListener('lock',onLock);controls.addEventListener('unlock',onUnlock);
   updateInventory();updateVitals();selectSlot(0);
 
-  const onResize = () => {
-    const width = Math.max(1, root.clientWidth || window.innerWidth);
-    const height = Math.max(1, root.clientHeight || window.innerHeight);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
-  };
+
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   window.addEventListener('resize', onResize);
